@@ -1,0 +1,58 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:aop="http://www.springframework.org/schema/aop"
+	   xmlns:p="http://www.springframework.org/schema/p"
+	   xmlns:task="http://www.springframework.org/schema/task"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+			http://www.springframework.org/schema/aop
+			http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+			http://www.springframework.org/schema/context
+			http://www.springframework.org/schema/context/spring-context-4.0.xsd
+			http://www.springframework.org/schema/task
+			http://www.springframework.org/schema/task/spring-task-4.0.xsd">
+
+	<!-- 注解扫描 -->
+	<context:component-scan base-package="com.java.xdd" />
+
+	<!-- 使用spring自带的占位符替换功能 -->
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<!-- 允许JVM参数覆盖 -->
+		<property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_OVERRIDE" />
+		<!-- 忽略没有找到的资源文件 -->
+		<property name="ignoreResourceNotFound" value="true" />
+		<!-- 配置资源文件 -->
+		<property name="locations">
+			<list>
+				<value>classpath:jdbc.properties</value>
+				<value>classpath:config.properties</value>
+				<value>classpath:freemarker.properties</value>
+			</list>
+		</property>
+	</bean>
+
+	<!--文件上传-->
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<!-- set the max upload size100MB -->
+		<property name="maxUploadSize">
+			<value>104857600</value>
+		</property>
+		<property name="maxInMemorySize">
+			<value>4096</value>
+		</property>
+		<property name="defaultEncoding" value="UTF-8"/>
+	</bean>
+
+	<!-- 导入其他Spring管理的资源 -->
+	<import resource="classpath:spring/applicationContext-mybatis.xml"/>
+	<!--<import resource="classpath:spring/applicationContext-shiro.xml"/>-->
+	<!--<import resource="classpath:spring/applicationContext-aspect.xml"/>-->
+	<!--<import resource="classpath:spring/applicationContext-redis.xml"/>-->
+	<!--<import resource="classpath:spring/applicationContext-job.xml"/>-->
+	<!--<import resource="classpath:spring/applicationContext-httpclient.xml"/>-->
+	<!--<import resource="classpath:spring/applicationContext-aliyunoss.xml"/>-->
+	<!--<import resource="classpath:spring/applicationContext-rabbitmq.xml"/>-->
+
+</beans>

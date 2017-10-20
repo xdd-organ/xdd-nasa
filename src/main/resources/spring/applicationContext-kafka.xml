@@ -1,0 +1,103 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:int="http://www.springframework.org/schema/integration"
+       xmlns:int-kafka="http://www.springframework.org/schema/integration/kafka"
+       xmlns:ini="http://www.springframework.org/schema/integration"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+			http://www.springframework.org/schema/aop
+			http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+			http://www.springframework.org/schema/context
+			http://www.springframework.org/schema/context/spring-context-4.0.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/integration/kafka
+			http://www.springframework.org/schema/integration/kafka/spring-integration-kafka.xsd
+			">
+
+    <!-- 注解扫描 -->
+    <context:component-scan base-package="com.java.xdd.kafka"/>
+
+    <!-- 生产者 -->
+    <ini:channel id="outWriteBackLemmaRecordChannel"/>
+
+    <int-kafka:outbound-channel-adapter id="kafkaOutboundChannelAdapter"
+                                        kafka-template="kafkaTemplate"
+                                        auto-startup="true"
+                                        channel="outWriteBackLemmaRecordChannel"
+                                        order="3"
+                                        topic="writeBackLemmaRecordTopic">
+        <int-kafka:request-handler-advice-chain>
+            <bean class="org.springframework.integration.handler.advice.RequestHandlerCircuitBreakerAdvice" />
+        </int-kafka:request-handler-advice-chain>
+    </int-kafka:outbound-channel-adapter>
+
+    <bean id="kafkaTemplate" class="org.springframework.kafka.core.KafkaTemplate">
+        <constructor-arg>
+            <bean class="org.springframework.kafka.core.DefaultKafkaProducerFactory">
+                <constructor-arg>
+                    <map>
+                        <entry key="bootstrap.servers" value="127.0.0.1:9092"/>
+                        <entry key="retries" value="10"/>
+                        <entry key="batch.size" value="16384"/>
+                        <entry key="linger.ms" value="1"/>
+                        <entry key="buffer.memory" value="33554432"/>
+                        <entry key="key.serializer" value="org.apache.kafka.common.serialization.IntegerSerializer"/>
+                        <entry key="value.serializer" value="org.apache.kafka.common.serialization.StringSerializer"/>
+                    </map>
+                </constructor-arg>
+            </bean>
+        </constructor-arg>
+        <constructor-arg name="autoFlush" value="true"/>
+        <property name="defaultTopic" value="writeBackLemmaRecordTopic"/>
+    </bean>
+
+    <bean id="kafkaProducerService" class="com.java.xdd.kafka.test.KafkaProducerServiceImpl"/>
+
+
+
+
+    <!--消费者-->
+    <int-kafka:message-driven-channel-adapter
+            id="kafkaMessageDrivenChannelAdapter"
+            listener-container="kafkaMessageListenerContainer"
+            auto-startup="true"
+            phase="100"
+            send-timeout="5000"
+            channel="nullChannel"
+            message-converter="messagingMessageConverter"
+            error-channel="errorChannel"/>
+
+    <bean id="messagingMessageConverter" class="org.springframework.kafka.support.converter.MessagingMessageConverter"/>
+
+    <bean id="kafkaMessageListenerContainer" class="org.springframework.kafka.listener.KafkaMessageListenerContainer">
+        <constructor-arg>
+            <bean class="org.springframework.kafka.core.DefaultKafkaConsumerFactory">
+                <constructor-arg>
+                    <map>
+                        <entry key="bootstrap.servers" value="127.0.0.1:9092"/>
+                        <entry key="group.id" value="test"/>
+                        <entry key="enable.auto.commit" value="true"/>
+                        <entry key="auto.commit.interval.ms" value="1000"/>
+                        <entry key="session.timeout.ms" value="30000"/>
+                        <entry key="key.deserializer" value="org.apache.kafka.common.serialization.IntegerDeserializer"/>
+                        <entry key="value.deserializer" value="org.apache.kafka.common.serialization.StringDeserializer"/>
+                    </map>
+                </constructor-arg>
+            </bean>
+        </constructor-arg>
+        <constructor-arg>
+            <bean class="org.springframework.kafka.listener.config.ContainerProperties">
+                <constructor-arg name="topics" value="writeBackLemmaRecordTopic"/>
+            </bean>
+
+        </constructor-arg>
+    </bean>
+
+
+    <bean id="kafkaConsumerService" class="com.java.xdd.kafka.test.KafkaConsumerServiceImpl" init-method="afterPropertiesSet"/>
+</beans>

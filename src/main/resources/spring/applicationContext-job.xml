@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:aop="http://www.springframework.org/schema/aop"
+		xmlns:p="http://www.springframework.org/schema/p"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+			http://www.springframework.org/schema/aop
+		http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+			http://www.springframework.org/schema/context
+			http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+
+	<!-- 定义任务bean -->
+	<bean id="navyJob" class="com.java.xdd.navy.job.NavyJob"/>
+
+	<!-- 将需要执行的定时任务注入JOB中 -->
+	<bean id="testJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject" ref="navyJob"></property>
+		<!-- 任务类中需要执行的方法 -->
+		<property name="targetMethod" value="jobInvoke"></property>
+		<!-- 上一次未执行完成的，要等待有再执行。 -->
+		<property name="concurrent" value="false"></property>
+	</bean>
+
+	<!-- 定义触发器 -->
+	<bean id="cronTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail" ref="testJob" />
+		<!-- 每5秒执行一次 -->
+		<property name="cronExpression" value="0 0/5 * * * ?" />
+	</bean>
+
+	<!-- 定义调度器 -->
+	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+		<property name="triggers">
+			<list>
+				<ref bean="cronTrigger" />
+			</list>
+		</property>
+	</bean>
+
+</beans>

@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+                           http://www.springframework.org/schema/aop
+                           http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+                           http://www.springframework.org/schema/context
+                           http://www.springframework.org/schema/context/spring-context-4.0.xsd
+                           http://www.springframework.org/schema/rabbit
+                           http://www.springframework.org/schema/rabbit/spring-rabbit-1.6.xsd">
+    <!-- 定义RabbitMQ的连接工厂 -->
+    <rabbit:connection-factory id="connectionFactory"
+                               host="${rabbitmq.host}" port="${rabbitmq.port}" username="${rabbitmq.username}" password="${rabbitmq.password}"
+                               virtual-host="${rabbitmq.virtualhost}"/>
+    <!-- MQ的管理，包括队列、交换器等 -->
+    <rabbit:admin connection-factory="connectionFactory" />
+
+    <!-- 定义队列，自动声明 -->
+    <rabbit:queue name="XDD_NAVY_QUEUE" auto-declare="true" durable="true"/>
+    <rabbit:queue name="XDD_NASA_QUEUE" auto-declare="true" durable="true"/>
+
+    <!-- 队列监听 -->
+    <rabbit:listener-container connection-factory="connectionFactory">
+        <rabbit:listener ref="navyMQHandle" method="execute" queue-names="XDD_NAVY_QUEUE" />
+        <rabbit:listener ref="navyMQHandle" method="execute2" queue-names="XDD_NASA_QUEUE" />
+    </rabbit:listener-container>
+
+    <!-- 消费消息 -->
+    <bean id="navyMQHandle" class="com.java.xdd.common.rabbitmq.handle.NavyMQHandle" />
+
+
+
+
+
+    <!--###################################################-->
+    <!--发送消息类-->
+    <rabbit:template id="rabbitTemplate" connection-factory="connectionFactory" exchange="xdd-navy" />
+
+    <!-- 定义交换机 -->
+    <rabbit:fanout-exchange name="xdd-navy" auto-declare="true">
+        <!-- 绑定序列，当监控到有消息，序列会将消息推送给序列(可在页面手动配置) -->
+        <rabbit:bindings>
+            <rabbit:binding queue="XDD_NAVY_QUEUE"/>
+        </rabbit:bindings>
+    </rabbit:fanout-exchange>
+
+</beans>

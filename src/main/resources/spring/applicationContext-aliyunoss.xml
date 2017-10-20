@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+			http://www.springframework.org/schema/aop
+			http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+			http://www.springframework.org/schema/context
+			http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+
+    <!--<context:property-placeholder location="config.properties"/>-->
+
+    <!--阿里云ossClient-->
+    <bean id="ossClient" class="com.aliyun.oss.OSSClient" scope="singleton">
+        <constructor-arg index="0" value="${oss.endpoint}"/>
+        <constructor-arg index="1" ref="credentialsProvider"/>
+        <constructor-arg index="2" ref="clientConfiguration"/>
+    </bean>
+
+    <bean id="credentials" class="com.aliyun.oss.common.auth.DefaultCredentials">
+        <constructor-arg index="0" value="${oss.accessKeyId}"/>
+        <constructor-arg index="1" value="${oss.secretAccessKey}"/>
+    </bean>
+    <bean id="credentialsProvider" class="com.aliyun.oss.common.auth.DefaultCredentialProvider">
+        <constructor-arg index="0" ref="credentials"/>
+    </bean>
+
+    <bean id="clientConfiguration" class="com.aliyun.oss.ClientConfiguration">
+        <property name="connectionTimeout" value="1000"/>
+        <property name="idleConnectionTime" value="60000"/>
+    </bean>
+
+
+</beans>

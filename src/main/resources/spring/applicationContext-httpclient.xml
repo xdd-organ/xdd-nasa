@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+			http://www.springframework.org/schema/aop
+	        http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+			http://www.springframework.org/schema/context
+			http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+
+    <bean id="customRegistry" class="com.java.xdd.common.httpclient.CustomRegistry"/>
+    <!-- 用于绕过https -->
+    <bean id="Registry" factory-method="build" factory-bean="customRegistry"/>
+
+    <bean id="httpClientConnectionManager" class="org.apache.http.impl.conn.PoolingHttpClientConnectionManager">
+        <constructor-arg index="0">
+            <bean factory-method="build" factory-bean="customRegistry"/>
+        </constructor-arg>
+        <!-- 连接池最大连接数 -->
+        <property name="maxTotal" value="${maxTotal}"/>
+        <!-- 每个路由基础的连接 -->
+        <property name="defaultMaxPerRoute" value="${defaultMaxPerRoute}"/>
+        <!-- 可用空闲连接过期时间,重用空闲连接时会先检查是否空闲时间超过这个时间，如果超过，释放socket重新建立 -->
+        <property name="validateAfterInactivity" value="${validateAfterInactivity}"/>
+    </bean>
+
+    <!--处理请求重试-->
+    <bean id="retryHandler" class="com.java.xdd.common.httpclient.CustomHttpRequestRetryHandler"/>
+
+    <bean id="httpClientBuilder" class="org.apache.http.impl.client.HttpClientBuilder" factory-method="create">
+        <!-- 请求重试处理 -->
+        <property name="retryHandler" ref="retryHandler"/>
+        <property name="connectionManager" ref="httpClientConnectionManager"/>
+        <!--<property name="defaultRequestConfig" ref="requestConfig"/>-->
+    </bean>
+
+    <bean id="requestConfigBuilder" class="org.apache.http.client.config.RequestConfig.Builder">
+        <!-- 连接超时毫秒 -->
+        <property name="connectTimeout" value="${connectTimeout}"/>
+        <!-- 获取请求超时毫秒 -->
+        <property name="connectionRequestTimeout" value="${connectionRequestTimeout}"/>
+        <!-- 传输超时毫秒 -->
+        <property name="socketTimeout" value="${socketTimeout}"/>
+    </bean>
+
+    <!-- 请求参数设置 -->
+    <bean id="requestConfig" class="org.apache.http.client.config.RequestConfig" factory-bean="requestConfigBuilder"
+          factory-method="build"/>
+
+    <bean id="httpclient" class="org.apache.http.impl.client.CloseableHttpClient" scope="prototype"
+          factory-bean="httpClientBuilder" factory-method="build"/>
+
+    <!-- 定时清理无效连接 -->
+    <bean class="com.java.xdd.common.httpclient.IdleConnectionEvictor" destroy-method="shutdown">
+        <constructor-arg index="0" ref="httpClientConnectionManager"/>
+    </bean>
+</beans>
