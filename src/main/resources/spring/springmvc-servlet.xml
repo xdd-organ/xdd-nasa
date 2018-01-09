@@ -22,8 +22,8 @@
 
 	<context:component-scan base-package="com.java.xdd.nasa.main.controller" />
 
-	<mvc:annotation-driven>
-		<!-- 处理responseBody 里面日期类型 -->
+	<!--<mvc:annotation-driven>
+		&lt;!&ndash; 处理responseBody 里面日期类型 &ndash;&gt;
 		<mvc:message-converters>
 			<bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
 				<property name="objectMapper">
@@ -37,7 +37,7 @@
 				</property>
 			</bean>
 		</mvc:message-converters>
-	</mvc:annotation-driven>
+	</mvc:annotation-driven>-->
 
 	<!-- 开启aop，对类代理 -->
 	<aop:config proxy-target-class="true"/>
