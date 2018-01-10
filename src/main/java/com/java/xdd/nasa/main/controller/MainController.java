@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("{v}/main")
 public class MainController {
 
+
+    //方式一
     @RequestMapping("main")
     @ApiVersion(1)
     public String main() {
@@ -34,6 +36,21 @@ public class MainController {
     @RequestMapping("main")
     @ApiVersion(4)
     public String main4() {
-        return "main4";
+        return "main";
     }
+
+    //方式二
+    @RequestMapping(value = "test", headers = "api-version=1")
+    public String test1() {
+        return "test1";
+    }
+    @RequestMapping(value = "test", headers = "api-version=2")
+    public String test2() {
+        return "test2";
+    }
+    @RequestMapping(value = "test", headers = "api-version=3")
+    public String test3() {
+        return "test3";
+    }
+
 }
