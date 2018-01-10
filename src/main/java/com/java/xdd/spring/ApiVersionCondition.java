@@ -6,25 +6,25 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ApiVesrsionCondition implements RequestCondition<ApiVesrsionCondition> {
+public class ApiVersionCondition implements RequestCondition<ApiVersionCondition> {
 
     // 路径中版本的前缀， 这里用 /v[1-9]/的形式
     private final static Pattern VERSION_PREFIX_PATTERN = Pattern.compile("v(\\d+)/");
 
     private int apiVersion;
 
-    public ApiVesrsionCondition(int apiVersion) {
+    public ApiVersionCondition(int apiVersion) {
         this.apiVersion = apiVersion;
     }
 
     @Override
-    public ApiVesrsionCondition combine(ApiVesrsionCondition other) {
+    public ApiVersionCondition combine(ApiVersionCondition other) {
         // 采用最后定义优先原则，则方法上的定义覆盖类上面的定义
-        return new ApiVesrsionCondition(other.getApiVersion());
+        return new ApiVersionCondition(other.getApiVersion());
     }
 
     @Override
-    public ApiVesrsionCondition getMatchingCondition(HttpServletRequest request) {
+    public ApiVersionCondition getMatchingCondition(HttpServletRequest request) {
         String pathInfo = request.getPathInfo();
         StringBuffer requestURL = request.getRequestURL();
         String requestURI = request.getRequestURI();
@@ -39,7 +39,7 @@ public class ApiVesrsionCondition implements RequestCondition<ApiVesrsionConditi
     }
 
     @Override
-    public int compareTo(ApiVesrsionCondition other, HttpServletRequest request) {
+    public int compareTo(ApiVersionCondition other, HttpServletRequest request) {
         // 优先匹配最新的版本号
         return other.getApiVersion() - this.apiVersion;
     }
